@@ -1,20 +1,26 @@
-from flask import Flask, render_template
+from flask import Flask, jsonify
 
-app = Flask(
-    __name__,
-    template_folder="src/presentation/pages"
-)
+app = Flask(__name__)
 
 
-@app.route("/")
-def home():
-    return render_template(
-        "display_features.html",
-        timestamp="2026-09-16 12:00",
-        title="Platform is running",
-        messages=["Application started successfully"],
-        errors=[]
-    )
+@app.route("/api/health")
+def health():
+    return jsonify({
+        "status": "ok",
+        "service": "backend"
+    })
+
+
+@app.route("/api/platform")
+def platform():
+    return jsonify({
+        "timestamp": "2026-09-16 12:00",
+        "title": "Platform is running",
+        "messages": [
+            "Application started successfully"
+        ],
+        "errors": []
+    })
 
 
 if __name__ == "__main__":
