@@ -1,17 +1,24 @@
-let req;
-
-// The data structure that will save the updates from the web shell
-req = {
-    updateMessage: { timestamp, title },
-    errors: Array,
-    messages: Array,
+export interface UpdateMessage {
+    timestamp: string;
+    title: string;
 }
 
-export function myPlatformContainer() {
-    return new HTMLContainer(
-        "myPlatform",
-        {
-            className: "container mb-4"
-        }
-    )
+export interface PlatformRequest {
+    updateMessage: UpdateMessage;
+    errors: string[];
+    messages: string[];
+}
+
+export function createPlatformRequest(
+    timestamp: string,
+    title: string
+): PlatformRequest {
+    return {
+        updateMessage: {
+            timestamp,
+            title
+        },
+        errors: [],
+        messages: []
+    };
 }
