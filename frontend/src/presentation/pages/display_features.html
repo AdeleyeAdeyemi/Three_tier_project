@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>My Platform</title>
+    <title>My Platform - Dashboard</title>
 
     <style>
         body {
@@ -14,100 +13,243 @@
             background: #f5f5f5;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto 20px;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
+        header {
+            max-width: 1100px;
+            margin: 0 auto 30px;
         }
 
         h1 {
-            margin-bottom: 30px;
+            margin-bottom: 5px;
         }
 
-        .message,
-        .error {
-            padding: 10px;
-            margin: 5px 0;
+        .subtitle {
+            color: #666;
+        }
+
+        #account {
+            max-width: 1100px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .products {
+            max-width: 1100px;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .product {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .product h2 {
+            margin-top: 0;
+        }
+
+        .description {
+            color: #666;
+            min-height: 45px;
+        }
+
+        .price {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 15px 0 5px;
+        }
+
+        .stock {
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+        }
+
+        #status {
+            max-width: 1100px;
+            margin: 20px auto;
+        }
+
+        hr {
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .products-title {
+            max-width: 1100px;
+            margin: 0 auto;
         }
     </style>
 </head>
 
 <body>
 
-    <main id="myPlatform" class="container">
-        <h1>My Platform</h1>
+    <header>
+        <h1>My Platform Dashboard</h1>
+        <p class="subtitle" id="welcome">
+            Loading your account...
+        </p>
+    </header>
 
-        <section class="container">
-            <h2>Updates</h2>
-            <p id="timestamp">Loading...</p>
-            <p id="title">Loading...</p>
-        </section>
+    <div id="status">
+        Loading dashboard...
+    </div>
 
-        <section class="container">
-            <h2>Messages</h2>
-            <ul id="messages">
-                <li>Loading...</li>
-            </ul>
-        </section>
+    <section id="account"></section>
 
-        <section class="container">
-            <h2>Errors</h2>
-            <ul id="errors">
-                <li>Loading...</li>
-            </ul>
-        </section>
-    </main>
+    <hr>
+
+    <h2 class="products-title">Products</h2>
+
+    <main id="products" class="products"></main>
 
     <script>
-        async function loadPlatformData() {
+
+        async function loadDashboard() {
+            const status = document.getElementById("status");
+            const welcome = document.getElementById("welcome");
+            const account = document.getElementById("account");
+
             try {
-                const response = await fetch("http://localhost:5000/api/platform");
+                const response = await fetch(
+                    "http://localhost:5000/api/dashboard",
+                    {
+                        credentials: "include"
+                    }
+                );
 
                 if (!response.ok) {
-                    throw new Error("Backend request failed");
+                    throw new Error("Authentication required");
+                }
+
+                const data = await response.json();
+                const user = data.user;
+
+                welcome.textContent =
+                    `Welcome back, ${user.first_name} ${user.last_name}`;
+
+                account.innerHTML = `
+                    <h2>Account</h2>
+                    <p>
+                        <strong>Name:</strong>
+                        ${user.first_name} ${user.last_name}
+                    </p>
+                    <p>
+                        <strong>Email:</strong>
+                        ${user.email}
+                    </p>
+                `;
+
+                status.textContent =
+                    "Dashboard loaded successfully";
+
+            } catch (error) {
+                console.error(error);
+
+                status.textContent =
+                    "Please log in to access your dashboard.";
+            }
+        }
+
+
+        async function loadProducts() {
+            const status = document.getElementById("status");
+            const productsContainer =
+                document.getElementById("products");
+
+            try {
+                const response = await fetch(
+                    "http://localhost:5000/api/products"
+                );
+
+                if (!response.ok) {
+                    throw new Error("Failed to load products");
                 }
 
                 const data = await response.json();
 
-                document.getElementById("timestamp").textContent =
-                    data.timestamp;
+                productsContainer.innerHTML = "";
 
-                document.getElementById("title").textContent =
-                    data.title;
+                if (data.products.length === 0) {
+                    status.textContent =
+                        "No products available.";
+                    return;
+                }
 
-                const messages = document.getElementById("messages");
-                messages.innerHTML = "";
+                status.textContent =
+                    `${data.products.length} products available`;
 
-                data.messages.forEach(message => {
-                    const li = document.createElement("li");
-                    li.textContent = message;
-                    messages.appendChild(li);
-                });
+                data.products.forEach(product => {
+                    const productElement =
+                        document.createElement("article");
 
-                const errors = document.getElementById("errors");
-                errors.innerHTML = "";
+                    productElement.className = "product";
 
-                data.errors.forEach(error => {
-                    const li = document.createElement("li");
-                    li.textContent = error;
-                    errors.appendChild(li);
+                    productElement.innerHTML = `
+                        <h2>${product.name}</h2>
+
+                        <p class="description">
+                            ${product.description}
+                        </p>
+
+                        <p class="price">
+                            £${Number(product.price).toFixed(2)}
+                        </p>
+
+                        <p class="stock">
+                            ${product.stock} available
+                        </p>
+
+                        <button
+                            ${product.stock === 0 ? "disabled" : ""}
+                            onclick="addToCart(${product.id})"
+                        >
+                            ${
+                                product.stock === 0
+                                    ? "Out of Stock"
+                                    : "Add to Cart"
+                            }
+                        </button>
+                    `;
+
+                    productsContainer.appendChild(productElement);
                 });
 
             } catch (error) {
                 console.error(error);
 
-                document.getElementById("timestamp").textContent =
-                    "Unable to connect to backend";
-
-                document.getElementById("title").textContent =
-                    "Backend connection failed";
+                status.textContent =
+                    "Unable to load products from the backend.";
             }
         }
 
-        loadPlatformData();
+
+        function addToCart(productId) {
+            console.log(
+                "Add product to cart:",
+                productId
+            );
+        }
+
+
+        loadDashboard();
+        loadProducts();
+
     </script>
 
 </body>
 </html>
+
