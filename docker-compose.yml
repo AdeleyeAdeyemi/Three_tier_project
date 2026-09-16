@@ -1,9 +1,44 @@
 services:
-  app:
-    build: .
-    container_name: three-tier-app
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: three-tier-frontend
     ports:
       - "3000:3000"
+    depends_on:
+      - backend
     environment:
       NODE_ENV: production
 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: three-tier-backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - database
+    environment:
+      DATABASE_HOST: database
+      DATABASE_PORT: 5432
+      DATABASE_NAME: three_tier
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+
+  database:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    container_name: three-tier-database
+    environment:
+      POSTGRES_DB: three_tier
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
