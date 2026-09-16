@@ -22,18 +22,14 @@
             border-radius: 8px;
         }
 
-        .message {
-            padding: 10px;
-            margin: 5px 0;
+        h1 {
+            margin-bottom: 30px;
         }
 
+        .message,
         .error {
             padding: 10px;
             margin: 5px 0;
-        }
-
-        h1 {
-            margin-bottom: 30px;
         }
     </style>
 </head>
@@ -45,24 +41,73 @@
 
         <section class="container">
             <h2>Updates</h2>
-            <p id="timestamp">No update available</p>
-            <p id="title">No update message</p>
+            <p id="timestamp">Loading...</p>
+            <p id="title">Loading...</p>
         </section>
 
         <section class="container">
             <h2>Messages</h2>
             <ul id="messages">
-                <li>No messages</li>
+                <li>Loading...</li>
             </ul>
         </section>
 
         <section class="container">
             <h2>Errors</h2>
             <ul id="errors">
-                <li>No errors</li>
+                <li>Loading...</li>
             </ul>
         </section>
     </main>
+
+    <script>
+        async function loadPlatformData() {
+            try {
+                const response = await fetch("http://localhost:5000/api/platform");
+
+                if (!response.ok) {
+                    throw new Error("Backend request failed");
+                }
+
+                const data = await response.json();
+
+                document.getElementById("timestamp").textContent =
+                    data.timestamp;
+
+                document.getElementById("title").textContent =
+                    data.title;
+
+                const messages = document.getElementById("messages");
+                messages.innerHTML = "";
+
+                data.messages.forEach(message => {
+                    const li = document.createElement("li");
+                    li.textContent = message;
+                    messages.appendChild(li);
+                });
+
+                const errors = document.getElementById("errors");
+                errors.innerHTML = "";
+
+                data.errors.forEach(error => {
+                    const li = document.createElement("li");
+                    li.textContent = error;
+                    errors.appendChild(li);
+                });
+
+            } catch (error) {
+                console.error(error);
+
+                document.getElementById("timestamp").textContent =
+                    "Unable to connect to backend";
+
+                document.getElementById("title").textContent =
+                    "Backend connection failed";
+            }
+        }
+
+        loadPlatformData();
+    </script>
 
 </body>
 </html>
