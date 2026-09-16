@@ -7,10 +7,10 @@ req = {
     messages: Array,
 }
 
-export function my-platform-container() {
+export function myPlatform-container() {
     return new HTMLContainer(
-        "my-platform",
-        class="container mb-4"
+        "myPlatform",
+        className="container mb-4"
     )
 
 }
